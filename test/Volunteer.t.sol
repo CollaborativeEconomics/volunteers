@@ -11,7 +11,7 @@ import {MockERC721} from "./utils/mocks/MockERC721.sol";
 contract TokenDistributorTest is Test {
     Utilities internal utils;
     TokenDistributor internal distributor;
-    MockERC20 internal token;
+    MockERC20[] internal tokens;
     MockERC721 internal nft;
 
     address payable[] internal users;
@@ -26,14 +26,21 @@ contract TokenDistributorTest is Test {
         user1 = vm.addr(3);
         user2 = vm.addr(4);
 
-        token = new MockERC20("Test Token", "TT", 18);
+        tokens = new MockERC20[](2);
+        tokens[0] = new MockERC20("Test Token", "TT", 18);
+        tokens[1] = new MockERC20("Test Token 2", "TT2", 18);
+        address[] memory tokensAddress = new address[](2);
+        tokensAddress[0] = address(tokens[0]);
+        tokensAddress[1] = address(tokens[1]);
         nft = new MockERC721("Test NFT", "TNFT");
         owner = vm.addr(1);
 
-        distributor = new TokenDistributor(token, nft, owner);
+        distributor = new TokenDistributor(tokensAddress, nft, owner);
 
         // Mint some tokens to the distributor for testing
-        token.mint(address(distributor), 1000 ether);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            tokens[i].mint(address(distributor), 1000 ether);
+        }
     }
 
     function testDistributeTokensToWhitelistedAddresses() public {
@@ -53,8 +60,8 @@ contract TokenDistributorTest is Test {
         vm.stopPrank();
 
         // Check balances
-        assertEq(token.balanceOf(user0), 500 ether);
-        assertEq(token.balanceOf(user1), 500 ether);
+        assertEq(tokens[0].balanceOf(user0), 500 ether);
+        assertEq(tokens[1].balanceOf(user1), 500 ether);
     }
 
     // function testCannotDistributeToNonWhitelisted() public {
@@ -77,7 +84,7 @@ contract TokenDistributorTest is Test {
         // Attempt to distribute tokens to a user without an NFT
         distributor.distributeTokens();
         vm.stopPrank();
-        assertTrue(token.balanceOf(user1) < 500);
+        assertTrue(tokens[0].balanceOf(user1) < 500);
     }
 
     function testCannotDistributeToNonWhitelisted() public {
@@ -95,7 +102,7 @@ contract TokenDistributorTest is Test {
         nft.mint(user1, 2);
         nft.mint(user2, 3);
 
-        uint256 balancePerUser = token.balanceOf(address(distributor)) / addresses.length;
+        uint256 balancePerUser = tokens[0].balanceOf(address(distributor)) / addresses.length;
 
         // remove user2 from whitelist
         distributor.removeFromWhitelist(user2);
@@ -103,7 +110,7 @@ contract TokenDistributorTest is Test {
         // Attempt to distribute more tokens than available
         distributor.distributeTokens();
         vm.stopPrank();
-        assertTrue(token.balanceOf(user2) < balancePerUser);
+        assertTrue(tokens[0].balanceOf(user2) < balancePerUser);
     }
 
     function testCannotAddInvalidTokenAddress() public {
@@ -117,5 +124,31 @@ contract TokenDistributorTest is Test {
         // Attempt to add invalid token address
         vm.expectRevert("Invalid token address");
         distributor.addTokenAddress(address(0));
+    }
+
+    // function testAddTokenAddress() public {
+    //     uint256 noOfAddress = distributor.tokenAddresses().length;
+    //     distributor.addTokenAddress(address(token));
+    //     assertEq(distributor.tokenAddresses().length, noOfAddress + 1);
+    // }
+
+    function testDistributeETH() public {
+        address[] memory addresses = new address[](2);
+        addresses[0] = user0;
+        addresses[1] = user1;
+        vm.startPrank(owner);
+        distributor.whitelistAddresses(addresses);
+        nft.mint(user0, 1);
+        nft.mint(user1, 2);
+        assertEq(nft.balanceOf(user0), 1);
+
+        // Distribute tokens to the whitelisted users
+        vm.deal(address(distributor), 1000 ether);
+        distributor.distributeTokens();
+        vm.stopPrank();
+
+        // Check ETH balance
+        assertEq(address(user0).balance, 500 ether, "User0 balance is incorrect after adding 1000 ETH");
+        assertEq(address(user1).balance, 500 ether, "User1 balance is incorrect after adding 1000 ETH");
     }
 }

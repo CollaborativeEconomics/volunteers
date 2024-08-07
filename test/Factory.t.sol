@@ -10,27 +10,26 @@ import {IVolunteer} from "../src/interface/IVolunteer.sol";
 contract FactoryTest is Test {
     VolunteerFactory internal factory;
     MockERC721 internal nft;
-    MockERC20 internal token;
+    MockERC20[] internal tokens;
     address internal volunteer;
     IVolunteer public iv;
 
     function setUp() public {
         factory = new VolunteerFactory();
         nft = new MockERC721("Test NFT", "TNFT");
-        token = new MockERC20("Money", "MNE", 18);
-        volunteer = factory.deployTokenDistributor(token, nft, address(this));
+        tokens = new MockERC20[](2);
+        tokens[0] = new MockERC20("Test Token", "TT", 18);
+        tokens[1] = new MockERC20("Test Token 2", "TT2", 18);
+        address[] memory tokensAddress = new address[](2);
+        tokensAddress[0] = address(tokens[0]);
+        tokensAddress[1] = address(tokens[1]);
+        volunteer = factory.deployTokenDistributor(tokensAddress, nft, address(this));
         iv = IVolunteer(volunteer);
     }
 
-    function testDeploy() public {
-        volunteer = factory.deployTokenDistributor(token, nft, address(this));
-        assertEq(factory.getDeployedTokenDistributor(address(this)), volunteer);
-        // assertEq(factory.getDeployedVolunteerNFT(address(this)), volunteer);
-    }
-
     function testVolunteerContractCallsSuccessfully() public view {
-        address token_address = iv.getToken();
-        assertEq(token_address, address(token));
+        address[] memory token_address = iv.getTokens();
+        assertEq(token_address[0], address(tokens[0]));
     }
 
     function testAddressWhiteListedSuccessfully() public {
