@@ -5,25 +5,28 @@ import {Test, console, StdUtils} from "forge-std/Test.sol";
 import {VolunteerFactory} from "../src/Factory.sol";
 import {MockERC721} from "./utils/mocks/MockERC721.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
+import {MockERC1155} from "./utils/mocks/MockERC1155.sol";
 import {IVolunteer} from "../src/interface/IVolunteer.sol";
 
 contract FactoryTest is Test {
     VolunteerFactory internal factory;
     MockERC721 internal nft;
     MockERC20[] internal tokens;
+    MockERC1155 internal nft1155;
     address internal volunteer;
     IVolunteer public iv;
 
     function setUp() public {
         factory = new VolunteerFactory();
         nft = new MockERC721("Test NFT", "TNFT");
+        nft1155 = new MockERC1155("Test NFT 1155", address(this));
         tokens = new MockERC20[](2);
         tokens[0] = new MockERC20("Test Token", "TT", 18);
         tokens[1] = new MockERC20("Test Token 2", "TT2", 18);
         address[] memory tokensAddress = new address[](2);
         tokensAddress[0] = address(tokens[0]);
         tokensAddress[1] = address(tokens[1]);
-        volunteer = factory.deployTokenDistributor(tokensAddress, nft, address(this));
+        volunteer = factory.deployTokenDistributor(tokensAddress, nft1155, address(this), 5**18, 0.5 ether);
         iv = IVolunteer(volunteer);
     }
 

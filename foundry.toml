@@ -7,4 +7,6 @@ libs = ["lib"]
 remappings = [
     "@solmate-utils/=lib/solmate/src/utils/",
     "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
+    "src/=src/",
+    
 ]
