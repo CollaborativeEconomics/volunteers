@@ -38,7 +38,7 @@ contract TokenDistributorTest is Test {
         nft1155 = new MockERC1155("Test NFT 1155", address(this));
         owner = vm.addr(1);
 
-        distributor = new TokenDistributor(tokensAddress, nft1155, owner, 5 ether, 0.5 ether);
+        distributor = new TokenDistributor(tokensAddress[0], owner, nft1155, 5 ether, 0.5 ether);
 
         // Mint some tokens to the distributor for testing
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -59,12 +59,12 @@ contract TokenDistributorTest is Test {
         nft1155.mint(user1, 1, 1, "");
 
         // Distribute tokens equally among whitelisted users
-        distributor.distributeTokensEqually(1);
+        distributor.distributeTokensByUnit(1);
         vm.stopPrank();
 
         // Check balances
-        assertEq(tokens[0].balanceOf(user0), 500 ether);
-        assertEq(tokens[1].balanceOf(user1), 500 ether);
+        assertEq(tokens[0].balanceOf(user0), 5 ether);
+        assertEq(tokens[0].balanceOf(user1), 5 ether);
     }
 
     // function testCannotDistributeToNonWhitelisted() public {
@@ -85,7 +85,7 @@ contract TokenDistributorTest is Test {
         nft.mint(user0, 1);
 
         // Attempt to distribute tokens to a user without an NFT
-        distributor.distributeTokensEqually(1);
+        distributor.distributeTokensByUnit(1);
         vm.stopPrank();
         assertTrue(tokens[0].balanceOf(user1) < 500);
     }
@@ -111,7 +111,7 @@ contract TokenDistributorTest is Test {
         distributor.removeFromWhitelist(user2);
 
         // Attempt to distribute more tokens than available
-        distributor.distributeTokensEqually(1);
+        distributor.distributeTokensByUnit(1);
         vm.stopPrank();
         assertTrue(tokens[0].balanceOf(user2) < balancePerUser);
     }
@@ -126,7 +126,7 @@ contract TokenDistributorTest is Test {
 
         // Attempt to add invalid token address
         vm.expectRevert("Invalid token address");
-        distributor.addTokenAddress(address(0));
+        distributor.changeTokenAddress(address(0));
     }
 
     // function testAddTokenAddress() public {
@@ -146,12 +146,12 @@ contract TokenDistributorTest is Test {
 
         // Distribute tokens to the whitelisted users
         vm.deal(address(distributor), 1000 ether);
-        distributor.distributeTokensEqually(1);
+        distributor.distributeTokensByUnit(1);
         vm.stopPrank();
 
         // Check ETH balance
-        assertEq(address(user0).balance, 500 ether, "User0 balance is incorrect after adding 1000 ETH");
-        assertEq(address(user1).balance, 500 ether, "User1 balance is incorrect after adding 1000 ETH");
+        assertEq(address(user0).balance, 0.5 ether, "User0 balance is incorrect after adding 1000 ETH");
+        assertEq(address(user1).balance, 0.5 ether, "User1 balance is incorrect after adding 1000 ETH");
     }
 
     function testDistributeTokensWithNFT() public {
@@ -172,11 +172,11 @@ contract TokenDistributorTest is Test {
 
         // Check balances
         assertEq(tokens[0].balanceOf(user0), 5 ether, "User0 balance is incorrect");
-        assertEq(tokens[1].balanceOf(user1), 15 ether, "User1 balance is incorrect");
+        assertEq(tokens[0].balanceOf(user1), 15 ether, "User1 balance is incorrect");
     }
 
-// 5
-// 5
+    // 5
+    // 5
     // function testDistributeTokensWithNFT1155() public {
     //     // Whitelist users[0] and users[1]
     //     address[] memory addresses = new address[](2);

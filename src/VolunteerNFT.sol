@@ -15,6 +15,7 @@ contract VolunteerNFT is ERC1155, Owned {
     /**
      * @dev Constructor to initialize the NFT with a URI and owner
      */
+
     constructor(string memory uri, address owner) ERC1155(uri) Owned(owner) {}
 
     /**
