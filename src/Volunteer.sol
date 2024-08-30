@@ -30,7 +30,9 @@ contract TokenDistributor is Owned, IVolunteer {
     /**
      * @dev Constructor to initialize the contract with tokens, NFT contract, and owner
      */
-    constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee, uint256 _ethBaseFee) Owned(_owner) {
+    constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee, uint256 _ethBaseFee)
+        Owned(_owner)
+    {
         token = _token;
         nftContract = _nftContract; // @dev Set the NFT contract
         baseFee = _baseFee;
@@ -96,39 +98,11 @@ contract TokenDistributor is Owned, IVolunteer {
     //     }
     // }
 
-    function distributeTokensByUnit(uint256 tokenId) external onlyOwner {
-        address[] memory recipients = registeredAddresses; // @dev Get the list of registered addresses
+    function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
         require(recipients.length > 0, "No recipients provided");
-
-        uint256 totalTokenBalance = address(this).balance;
-        uint256 whitelistCount = 0;
 
         // Cache the length of registeredAddresses
         uint256 recipientsLength = recipients.length;
-
-        // Count whitelisted addresses
-        for (uint256 i = 0; i < recipientsLength; i++) {
-            if (whitelisted[recipients[i]]) {
-                whitelistCount++; // @dev Count how many addresses are whitelisted
-            }
-        }
-
-        if (totalTokenBalance > 0) {
-            // Distribute ETH
-            for (uint256 i = 0; i < whitelistCount; i++) {
-                address currentAddress = recipients[i];
-                if (whitelisted[currentAddress]) {
-                    uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, tokenId);
-                    if (currentAddressNFTBalance > 0) {
-                        uint256 currentAddressShare = currentAddressNFTBalance * ETHBaseFee;
-                        // Send ETH using call to avoid reentrancy attack
-                        (bool success,) = currentAddress.call{value: currentAddressShare}("");
-                        require(success, "Transfer failed"); // @dev Ensure the transfer was successful
-                        emit TokensDistributed(currentAddress, currentAddressShare); // @dev Emit event for distribution
-                    }
-                }
-            }
-        }
 
         // Now distribute ERC20 tokens
         // for (uint256 j = 0; j < tokens.length; j++) {
@@ -138,13 +112,11 @@ contract TokenDistributor is Owned, IVolunteer {
         if (tokenBalance > 0) {
             for (uint256 i = 0; i < recipientsLength; i++) {
                 address currentAddress = recipients[i];
-                if (whitelisted[currentAddress]) {
-                    uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, tokenId);
-                    if (currentAddressNFTBalance > 0) {
-                        uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
-                        tokenContract.transfer(currentAddress, currentAddressShare); // @dev Send tokens
-                        emit TokensDistributed(currentAddress, currentAddressShare); // @dev Emit event for distribution
-                    }
+                uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, 2);
+                if (currentAddressNFTBalance > 0) {
+                    uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
+                    tokenContract.transfer(currentAddress, currentAddressShare); // @dev Send tokens
+                    emit TokensDistributed(currentAddress, currentAddressShare); // @dev Emit event for distribution
                 }
             }
         }

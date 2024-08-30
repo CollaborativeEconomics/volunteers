@@ -3,19 +3,19 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "_tokens",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "_token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "_nftContract",
         "type": "address",
         "internalType": "contract ERC1155"
-      },
-      {
-        "name": "_contract_owner",
-        "type": "address",
-        "internalType": "address"
       },
       {
         "name": "_baseFee",
@@ -49,19 +49,6 @@
   },
   {
     "type": "function",
-    "name": "addTokenAddress",
-    "inputs": [
-      {
-        "name": "tokenAddress",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "baseFee",
     "inputs": [],
     "outputs": [
@@ -75,12 +62,12 @@
   },
   {
     "type": "function",
-    "name": "distributeTokensByUnit",
+    "name": "changeTokenAddress",
     "inputs": [
       {
-        "name": "tokenId",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "tokenAddress",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -88,12 +75,12 @@
   },
   {
     "type": "function",
-    "name": "distributeTokensEqually",
+    "name": "distributeTokensByUnit",
     "inputs": [
       {
-        "name": "tokenId",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "recipients",
+        "type": "address[]",
+        "internalType": "address[]"
       }
     ],
     "outputs": [],
@@ -114,13 +101,13 @@
   },
   {
     "type": "function",
-    "name": "getTokens",
+    "name": "getToken",
     "inputs": [],
     "outputs": [
       {
-        "name": "_tokens",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "_token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -217,14 +204,8 @@
   },
   {
     "type": "function",
-    "name": "tokens",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "name": "token",
+    "inputs": [],
     "outputs": [
       {
         "name": "",

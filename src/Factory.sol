@@ -30,13 +30,12 @@ contract VolunteerFactory {
      * @param _ethBaseFee The base fee for sending eth
      * @return The address of the newly deployed TokenDistributor
      */
-    function deployTokenDistributor(
-        address _token,
-        ERC1155 _nftContract,
-        uint256 _baseFee,
-        uint256 _ethBaseFee
-    ) external returns (address) {
-        TokenDistributor token_distributor = new TokenDistributor(_token, msg.sender, _nftContract, _baseFee, _ethBaseFee); // @dev Create a new TokenDistributor
+    function deployTokenDistributor(address _token, ERC1155 _nftContract, uint256 _baseFee, uint256 _ethBaseFee)
+        external
+        returns (address)
+    {
+        TokenDistributor token_distributor =
+            new TokenDistributor(_token, msg.sender, _nftContract, _baseFee, _ethBaseFee); // @dev Create a new TokenDistributor
         deployedTokenDistributors[msg.sender] = address(token_distributor); // @dev Store the deployed contract address
         emit VolunteerDeployed(msg.sender, address(token_distributor)); // @dev Emit event for deployment
         return address(token_distributor); // @dev Return the address of the deployed contract

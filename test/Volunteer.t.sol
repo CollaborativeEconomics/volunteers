@@ -46,27 +46,6 @@ contract TokenDistributorTest is Test {
         }
     }
 
-    function testDistributeTokensToWhitelistedAddresses() public {
-        // Whitelist users[0] and users[1]
-        address[] memory addresses = new address[](2);
-        addresses[0] = user0;
-        addresses[1] = user1;
-        vm.startPrank(owner);
-        distributor.whitelistAddresses(addresses);
-
-        // Mint NFTs to the whitelisted users
-        nft1155.mint(user0, 1, 1, "");
-        nft1155.mint(user1, 1, 1, "");
-
-        // Distribute tokens equally among whitelisted users
-        distributor.distributeTokensByUnit(1);
-        vm.stopPrank();
-
-        // Check balances
-        assertEq(tokens[0].balanceOf(user0), 5 ether);
-        assertEq(tokens[0].balanceOf(user1), 5 ether);
-    }
-
     // function testCannotDistributeToNonWhitelisted() public {
     //     // Whitelist only users[0]
 
@@ -85,7 +64,7 @@ contract TokenDistributorTest is Test {
         nft.mint(user0, 1);
 
         // Attempt to distribute tokens to a user without an NFT
-        distributor.distributeTokensByUnit(1);
+        distributor.distributeTokensByUnit(addresses);
         vm.stopPrank();
         assertTrue(tokens[0].balanceOf(user1) < 500);
     }
@@ -111,7 +90,7 @@ contract TokenDistributorTest is Test {
         distributor.removeFromWhitelist(user2);
 
         // Attempt to distribute more tokens than available
-        distributor.distributeTokensByUnit(1);
+        distributor.distributeTokensByUnit(addresses);
         vm.stopPrank();
         assertTrue(tokens[0].balanceOf(user2) < balancePerUser);
     }
@@ -135,25 +114,6 @@ contract TokenDistributorTest is Test {
     //     assertEq(distributor.tokenAddresses().length, noOfAddress + 1);
     // }
 
-    function testDistributeETH() public {
-        address[] memory addresses = new address[](2);
-        addresses[0] = user0;
-        addresses[1] = user1;
-        vm.startPrank(owner);
-        distributor.whitelistAddresses(addresses);
-        nft1155.mint(user0, 1, 1, "");
-        nft1155.mint(user1, 1, 1, "");
-
-        // Distribute tokens to the whitelisted users
-        vm.deal(address(distributor), 1000 ether);
-        distributor.distributeTokensByUnit(1);
-        vm.stopPrank();
-
-        // Check ETH balance
-        assertEq(address(user0).balance, 0.5 ether, "User0 balance is incorrect after adding 1000 ETH");
-        assertEq(address(user1).balance, 0.5 ether, "User1 balance is incorrect after adding 1000 ETH");
-    }
-
     function testDistributeTokensWithNFT() public {
         // Whitelist users[0] and users[1]
         address[] memory addresses = new address[](2);
@@ -163,11 +123,11 @@ contract TokenDistributorTest is Test {
         distributor.whitelistAddresses(addresses);
 
         // Mint NFTs to the whitelisted users
-        nft1155.mint(user0, 1, 1, "");
-        nft1155.mint(user1, 1, 3, "");
+        nft1155.mint(user0, 2, 1, "");
+        nft1155.mint(user1, 2, 3, "");
 
         // Distribute tokens equally among whitelisted users
-        distributor.distributeTokensByUnit(1);
+        distributor.distributeTokensByUnit(addresses);
         vm.stopPrank();
 
         // Check balances
