@@ -26,7 +26,7 @@ contract FactoryTest is Test {
         address[] memory tokensAddress = new address[](2);
         tokensAddress[0] = address(tokens[0]);
         tokensAddress[1] = address(tokens[1]);
-        volunteer = factory.deployTokenDistributor(tokensAddress[0], nft1155, 5 ** 18, 0.5 ether);
+        volunteer = factory.deployTokenDistributor(tokensAddress[0], nft1155, 5 ** 18);
         iv = IVolunteer(volunteer);
     }
 

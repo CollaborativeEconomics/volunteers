@@ -22,7 +22,6 @@ contract TokenDistributor is Owned, IVolunteer {
     mapping(address => bool) public whitelisted;
     /// @dev Base fee per unit of activities defined by the organization
     uint256 public baseFee;
-    uint256 public ETHBaseFee;
 
     /// @dev Event emitted when tokens are distributed
     event TokensDistributed(address indexed recipient, uint256 amount);
@@ -30,73 +29,13 @@ contract TokenDistributor is Owned, IVolunteer {
     /**
      * @dev Constructor to initialize the contract with tokens, NFT contract, and owner
      */
-    constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee, uint256 _ethBaseFee)
+    constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee)
         Owned(_owner)
     {
         token = _token;
         nftContract = _nftContract; // @dev Set the NFT contract
         baseFee = _baseFee;
-        ETHBaseFee = _ethBaseFee;
     }
-
-    /**
-     * @dev Distributes ETH and ERC20 tokens to whitelisted addresses holding NFTs
-     */
-    // function distributeTokensEqually(uint256 tokenId) external onlyOwner {
-    //     address[] memory recipients = registeredAddresses; // @dev Get the list of registered addresses
-    //     require(recipients.length > 0, "No recipients provided");
-
-    //     uint256 totalTokenBalance = address(this).balance;
-    //     uint256 whitelistCount = 0;
-
-    //     // Count whitelisted addresses
-    //     for (uint256 i = 0; i < recipients.length; i++) {
-    //         if (whitelisted[recipients[i]]) {
-    //             whitelistCount++; // @dev Count how many addresses are whitelisted
-    //         }
-    //     }
-
-    //     if (totalTokenBalance > 0) {
-    //         // Calculate amount per recipient for ETH
-    //         uint256 amountPerRecipient = totalTokenBalance / whitelistCount;
-
-    //         // Distribute ETH
-    //         for (uint256 i = 0; i < whitelistCount; i++) {
-    //             address currentAddress = recipients[i];
-    //             if (whitelisted[currentAddress]) {
-    //                 uint256 currentAddressBalance = nftContract.balanceOf(currentAddress, tokenId);
-    //                 if (currentAddressBalance > 0) {
-    //                     // Send ETH using call to avoid reentrancy attack
-
-    //                     (bool success,) = currentAddress.call{value: amountPerRecipient}("");
-    //                     require(success, "Transfer failed"); // @dev Ensure the transfer was successful
-    //                     emit TokensDistributed(currentAddress, amountPerRecipient); // @dev Emit event for distribution
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     // Now distribute ERC20 tokens
-    //     for (uint256 j = 0; j < tokens.length; j++) {
-    //         IERC20 tokenContract = IERC20(tokens[j]);
-    //         uint256 tokenBalance = tokenContract.balanceOf(address(this)); // @dev Get the token balance of the contract
-
-    //         if (tokenBalance > 0) {
-    //             uint256 amountPerTokenRecipient = tokenBalance / whitelistCount; // @dev Calculate amount per recipient
-
-    //             for (uint256 i = 0; i < recipients.length; i++) {
-    //                 address currentAddress = recipients[i];
-    //                 if (whitelisted[currentAddress]) {
-    //                     uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, tokenId);
-    //                     if (currentAddressNFTBalance > 0) {
-    //                         tokenContract.transfer(currentAddress, amountPerTokenRecipient); // @dev Send tokens
-    //                         emit TokensDistributed(currentAddress, amountPerTokenRecipient); // @dev Emit event for distribution
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
         require(recipients.length > 0, "No recipients provided");

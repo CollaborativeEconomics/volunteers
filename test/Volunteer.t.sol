@@ -38,7 +38,7 @@ contract TokenDistributorTest is Test {
         nft1155 = new MockERC1155("Test NFT 1155", address(this));
         owner = vm.addr(1);
 
-        distributor = new TokenDistributor(tokensAddress[0], owner, nft1155, 5 ether, 0.5 ether);
+        distributor = new TokenDistributor(tokensAddress[0], owner, nft1155, 5 ether);
 
         // Mint some tokens to the distributor for testing
         for (uint256 i = 0; i < tokens.length; i++) {
