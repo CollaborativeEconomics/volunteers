@@ -6,6 +6,7 @@ interface IVolunteer {
     function removeFromWhitelist(address _address) external;
     // function distributeTokensEqually(uint256 tokenId) external;
     function distributeTokensByUnit(address[] memory recipients) external;
+    function withdrawToken() external;
     function updateBaseFee(uint256 _baseFee) external;
     function getBaseFee() external view returns (uint256 _baseFee);
     function getToken() external view returns (address _token);

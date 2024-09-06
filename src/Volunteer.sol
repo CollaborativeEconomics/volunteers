@@ -22,6 +22,8 @@ contract TokenDistributor is Owned, IVolunteer {
     mapping(address => bool) public whitelisted;
     /// @dev Base fee per unit of activities defined by the organization
     uint256 public baseFee;
+    /// @dev address of the owner
+    address public owner;
 
     /// @dev Event emitted when tokens are distributed
     event TokensDistributed(address indexed recipient, uint256 amount);
@@ -35,6 +37,7 @@ contract TokenDistributor is Owned, IVolunteer {
         token = _token;
         nftContract = _nftContract; // @dev Set the NFT contract
         baseFee = _baseFee;
+        owner = _owner;
     }
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
@@ -59,6 +62,16 @@ contract TokenDistributor is Owned, IVolunteer {
                 }
             }
         }
+    }
+
+    /**
+    * @dev Withdraws the remaining tokens from the contract after the campaign has ended
+    * This function is only callable by the owner
+    */
+    function withdrawToken() external onlyOwner {
+        IERC20 tokenContract = IERC20(token);
+        uint256 tokenBalance = tokenContract.balanceOf(address(this)); // @dev Get the token balance of the contract
+        tokenContract.transfer(owner, tokenBalance); // @dev Send the remaining tokens to the owner
     }
 
     /**
