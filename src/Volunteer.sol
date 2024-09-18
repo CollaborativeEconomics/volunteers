@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Owned} from "solmate/auth/Owned.sol";
 import {IERC20} from "openzeppelin-contracts/interfaces/IERC20.sol";
 import {ERC1155} from "openzeppelin-contracts/token/ERC1155/ERC1155.sol";
@@ -9,7 +8,8 @@ import {IVolunteer} from "./interface/IVolunteer.sol";
 
 /**
  * @title TokenDistributor
- * @dev A contract for distributing tokens and ETH to whitelisted addresses holding NFTs
+ * @author Lawal Abubakar Babatunde
+ * @dev A contract for distributing tokens to whitelisted addresses holding NFTs
  */
 contract TokenDistributor is Owned, IVolunteer {
     /// @notice The list of acceptable tokens
@@ -22,8 +22,8 @@ contract TokenDistributor is Owned, IVolunteer {
     mapping(address => bool) public whitelisted;
     /// @dev Base fee per unit of activities defined by the organization
     uint256 public baseFee;
-    /// @dev address of the owner
-    address public owner;
+    /// @dev Token ID that qualifies volunteer for payment.
+    uint8 constant NFT_TOKEN_ID_TWO = 2;
 
     /// @dev Event emitted when tokens are distributed
     event TokensDistributed(address indexed recipient, uint256 amount);
@@ -37,7 +37,6 @@ contract TokenDistributor is Owned, IVolunteer {
         token = _token;
         nftContract = _nftContract; // @dev Set the NFT contract
         baseFee = _baseFee;
-        owner = _owner;
     }
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
@@ -54,7 +53,7 @@ contract TokenDistributor is Owned, IVolunteer {
         if (tokenBalance > 0) {
             for (uint256 i = 0; i < recipientsLength; i++) {
                 address currentAddress = recipients[i];
-                uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, 2);
+                uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
                 if (currentAddressNFTBalance > 0) {
                     uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
                     tokenContract.transfer(currentAddress, currentAddressShare); // @dev Send tokens

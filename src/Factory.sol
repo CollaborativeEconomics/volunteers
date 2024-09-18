@@ -8,17 +8,18 @@ import {ERC1155} from "openzeppelin-contracts/token/ERC1155/ERC1155.sol";
 
 /**
  * @title VolunteerFactory
+ * @author Lawal Abubakar  
  * @dev A contract for deploying TokenDistributor and VolunteerNFT contracts
  */
 contract VolunteerFactory {
     /**
      * @dev Mapping of deployed token distributors by owner address
      */
-    mapping(address => address) public deployedTokenDistributors;
+    mapping(address owner => address tokenDistributor) public deployedTokenDistributors;
     /**
      * @dev Mapping of deployed VolunteerNFTs by owner address
      */
-    mapping(address => address) public deployedVolunteersNFT;
+    mapping(address deployer => address NFTAddress) public deployedVolunteersNFT;
 
     event VolunteerDeployed(address indexed owner, address indexed volunteerAddress); // @dev Event emitted when a volunteer contract is deployed
 
