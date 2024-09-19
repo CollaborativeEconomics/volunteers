@@ -16,6 +16,7 @@ contract TokenDistributorTest is Test {
     MockERC1155 internal nft1155;
 
     address payable[] internal users;
+    address[] internal addresses;
     address user0;
     address user1;
     address internal user2;
@@ -45,22 +46,29 @@ contract TokenDistributorTest is Test {
         }
     }
 
-    function testCannotDistributeWithoutNFT() public {
-        // Whitelist user1 but do not mint NFT
-        address[] memory addresses = new address[](2);
-        addresses[0] = user0;
+    modifier initial_operation {
+       addresses[0] = user0;
         addresses[1] = user1;
+        addresses[2] = user2;
+
         vm.startPrank(owner);
         distributor.whitelistAddresses(addresses);
-        nft.mint(user0, 1);
 
+        // Mint NFTs to the whitelisted users
+        nft.mint(user0, 1);
+        nft.mint(user1, 2);
+        nft.mint(user2, 3);
+        _;
+    }
+
+    function testCannotDistributeWithoutNFT() public initial_operation(){
         // Attempt to distribute tokens to a user without an NFT
         distributor.distributeTokensByUnit(addresses);
         vm.stopPrank();
         assertTrue(tokens[0].balanceOf(user1) < 500);
     }
 
-    function testCannotDistributeToNonWhitelisted() public {
+    function testCannotDistributeToNonWhitelisted() public initial_operation(){
         // Whitelist users[0] and users[1]
         address[] memory addresses = new address[](3);
         addresses[0] = user0;
@@ -86,7 +94,7 @@ contract TokenDistributorTest is Test {
         assertTrue(tokens[0].balanceOf(user2) < balancePerUser);
     }
 
-    function testCannotAddInvalidTokenAddress() public {
+    function testCannotAddInvalidTokenAddress() public initial_operation(){
         // Whitelist user1 but do not mint NFT
         address[] memory addresses = new address[](2);
         addresses[0] = user0;

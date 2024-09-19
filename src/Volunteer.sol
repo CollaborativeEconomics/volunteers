@@ -17,13 +17,13 @@ contract TokenDistributor is Owned, IVolunteer {
     /// @dev List of addresses registered for token distribution
     address[] public registeredAddresses;
     /// @notice The NFT contract to check ownership
-    ERC1155 public nftContract;
+    ERC1155 private immutable i_nftContract;
     /// @dev Mapping to check if a wallet is whitelisted
     mapping(address => bool) public whitelisted;
     /// @dev Base fee per unit of activities defined by the organization
     uint256 public baseFee;
     /// @dev Token ID that qualifies volunteer for payment.
-    uint8 constant NFT_TOKEN_ID_TWO = 2;
+    uint8 private constant NFT_TOKEN_ID_TWO = 2;
 
     /// @dev Event emitted when tokens are distributed
     event TokensDistributed(address indexed recipient, uint256 amount);
@@ -35,7 +35,7 @@ contract TokenDistributor is Owned, IVolunteer {
         Owned(_owner)
     {
         token = _token;
-        nftContract = _nftContract; // @dev Set the NFT contract
+        i_nftContract = _nftContract; // @dev Set the NFT contract
         baseFee = _baseFee;
     }
 
@@ -48,16 +48,16 @@ contract TokenDistributor is Owned, IVolunteer {
         // Now distribute ERC20 tokens
         // for (uint256 j = 0; j < tokens.length; j++) {
         IERC20 tokenContract = IERC20(token);
-        uint256 tokenBalance = tokenContract.balanceOf(address(this)); // @dev Get the token balance of the contract
+        uint256 tokenBalance = tokenContract.balanceOf(address(this));
 
         if (tokenBalance > 0) {
             for (uint256 i = 0; i < recipientsLength; i++) {
                 address currentAddress = recipients[i];
-                uint256 currentAddressNFTBalance = nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
+                uint256 currentAddressNFTBalance = i_nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
                 if (currentAddressNFTBalance > 0) {
                     uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
-                    tokenContract.transfer(currentAddress, currentAddressShare); // @dev Send tokens
-                    emit TokensDistributed(currentAddress, currentAddressShare); // @dev Emit event for distribution
+                    tokenContract.transfer(currentAddress, currentAddressShare);
+                    emit TokensDistributed(currentAddress, currentAddressShare);
                 }
             }
         }
@@ -81,8 +81,8 @@ contract TokenDistributor is Owned, IVolunteer {
         for (uint256 i = 0; i < _addresses.length; i++) {
             // @dev Check if the address is not already whitelisted
             if (!whitelisted[_addresses[i]]) {
-                whitelisted[_addresses[i]] = true; // @dev Mark each address as whitelisted
-                registeredAddresses.push(_addresses[i]); // @dev Add the address to registered addresses
+                whitelisted[_addresses[i]] = true;
+                registeredAddresses.push(_addresses[i]); 
             }
         }
     }
@@ -109,8 +109,8 @@ contract TokenDistributor is Owned, IVolunteer {
      * @param user The address to be added to the whitelist
      */
     function updateWhitelist(address user) external onlyOwner {
-        whitelisted[user] = true; // @dev Mark the address as whitelisted
-        registeredAddresses.push(user); // @dev Add the address to registered addresses
+        whitelisted[user] = true; 
+        registeredAddresses.push(user); 
     }
 
     /**
@@ -126,7 +126,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @return _token The current donation token address
      */
     function getToken() external view returns (address _token) {
-        _token = token; // @dev Return the list of tokens
+        _token = token; 
         return _token;
     }
 
@@ -156,8 +156,12 @@ contract TokenDistributor is Owned, IVolunteer {
         status = whitelisted[user]; // @dev Return the whitelist status of the user
     }
 
+    function getNFTAddress() external view returns (ERC1155) {
+        return i_nftContract;
+    }
+
     /**
      * @dev The contract should be able to receive Eth.
      */
-    receive() external payable virtual {} // @dev Allow the contract to receive ETH
+    receive() external payable virtual {}
 }
