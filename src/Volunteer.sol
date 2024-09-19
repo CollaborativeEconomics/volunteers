@@ -13,15 +13,15 @@ import {IVolunteer} from "./interface/IVolunteer.sol";
  */
 contract TokenDistributor is Owned, IVolunteer {
     /// @notice The list of acceptable tokens
-    address public token;
+    address public s_token;
     /// @dev List of addresses registered for token distribution
-    address[] public registeredAddresses;
+    address[] public s_registeredAddresses;
     /// @notice The NFT contract to check ownership
     ERC1155 private immutable i_nftContract;
     /// @dev Mapping to check if a wallet is whitelisted
     mapping(address => bool) public whitelisted;
     /// @dev Base fee per unit of activities defined by the organization
-    uint256 public baseFee;
+    uint256 public s_baseFee;
     /// @dev Token ID that qualifies volunteer for payment.
     uint8 private constant NFT_TOKEN_ID_TWO = 2;
 
@@ -34,9 +34,9 @@ contract TokenDistributor is Owned, IVolunteer {
     constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee)
         Owned(_owner)
     {
-        token = _token;
+        s_token = _token;
         i_nftContract = _nftContract; // @dev Set the NFT contract
-        baseFee = _baseFee;
+        s_baseFee = _baseFee;
     }
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
@@ -44,10 +44,11 @@ contract TokenDistributor is Owned, IVolunteer {
 
         // Cache the length of registeredAddresses
         uint256 recipientsLength = recipients.length;
+        uint256 baseFee = s_baseFee;
 
         // Now distribute ERC20 tokens
         // for (uint256 j = 0; j < tokens.length; j++) {
-        IERC20 tokenContract = IERC20(token);
+        IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this));
 
         if (tokenBalance > 0) {
@@ -68,7 +69,7 @@ contract TokenDistributor is Owned, IVolunteer {
     * This function is only callable by the owner
     */
     function withdrawToken() external onlyOwner {
-        IERC20 tokenContract = IERC20(token);
+        IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this)); // @dev Get the token balance of the contract
         tokenContract.transfer(owner, tokenBalance); // @dev Send the remaining tokens to the owner
     }
@@ -82,7 +83,7 @@ contract TokenDistributor is Owned, IVolunteer {
             // @dev Check if the address is not already whitelisted
             if (!whitelisted[_addresses[i]]) {
                 whitelisted[_addresses[i]] = true;
-                registeredAddresses.push(_addresses[i]); 
+                s_registeredAddresses.push(_addresses[i]); 
             }
         }
     }
@@ -101,7 +102,7 @@ contract TokenDistributor is Owned, IVolunteer {
      */
     function changeTokenAddress(address tokenAddress) external onlyOwner {
         require(tokenAddress != address(0), "Invalid token address"); // @dev Ensure the token address is valid
-        token = tokenAddress; // @dev Add the token address to the list
+        s_token = tokenAddress; // @dev Add the token address to the list
     }
 
     /**
@@ -110,7 +111,7 @@ contract TokenDistributor is Owned, IVolunteer {
      */
     function updateWhitelist(address user) external onlyOwner {
         whitelisted[user] = true; 
-        registeredAddresses.push(user); 
+        s_registeredAddresses.push(user); 
     }
 
     /**
@@ -118,7 +119,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @param _baseFee The new base fee
      */
     function updateBaseFee(uint256 _baseFee) external onlyOwner {
-        baseFee = _baseFee; // @dev Update the base fee
+        s_baseFee = _baseFee; // @dev Update the base fee
     }
 
     /**
@@ -126,7 +127,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @return _token The current donation token address
      */
     function getToken() external view returns (address _token) {
-        _token = token; 
+        _token = s_token; 
         return _token;
     }
 
@@ -135,7 +136,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @return whitelist The list of whitelisted addresses
      */
     function getWhitelistedAddresses() external view returns (address[] memory whitelist) {
-        whitelist = registeredAddresses; // @dev Return the list of registered addresses
+        whitelist = s_registeredAddresses; // @dev Return the list of registered addresses
     }
 
     /**
@@ -144,7 +145,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @return _baseFee The current base fee
      */
     function getBaseFee() external view returns (uint256 _baseFee) {
-        _baseFee = baseFee; // @dev Return the base fee
+        _baseFee = s_baseFee; // @dev Return the base fee
     }
 
     /**
