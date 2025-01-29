@@ -63,10 +63,6 @@ contract TokenDistributorTest is Test {
 
 
     function testCannotAddInvalidTokenAddress() public{
-        // Whitelist user1 but do not mint NFT
-        // address[] memory addresses = new address[](2);
-        // addresses[0] = user0;
-        // addresses[1] = user1;
         vm.startPrank(owner);
         // Attempt to add invalid token address
         vm.expectRevert("Invalid token address");
