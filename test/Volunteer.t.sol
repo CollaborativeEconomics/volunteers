@@ -61,47 +61,13 @@ contract TokenDistributorTest is Test {
         _;
     }
 
-    function testCannotDistributeWithoutNFT() public initial_operation(){
-        // Attempt to distribute tokens to a user without an NFT
-        distributor.distributeTokensByUnit(addresses);
-        vm.stopPrank();
-        assertTrue(tokens[0].balanceOf(user1) < 500);
-    }
 
-    function testCannotDistributeToNonWhitelisted() public initial_operation(){
-        // Whitelist users[0] and users[1]
-        address[] memory addresses = new address[](3);
-        addresses[0] = user0;
-        addresses[1] = user1;
-        addresses[2] = user2;
-
-        vm.startPrank(owner);
-        distributor.whitelistAddresses(addresses);
-
-        // Mint NFTs to the whitelisted users
-        nft.mint(user0, 1);
-        nft.mint(user1, 2);
-        nft.mint(user2, 3);
-
-        uint256 balancePerUser = tokens[0].balanceOf(address(distributor)) / addresses.length;
-
-        // remove user2 from whitelist
-        distributor.removeFromWhitelist(user2);
-
-        // Attempt to distribute more tokens than available
-        distributor.distributeTokensByUnit(addresses);
-        vm.stopPrank();
-        assertTrue(tokens[0].balanceOf(user2) < balancePerUser);
-    }
-
-    function testCannotAddInvalidTokenAddress() public initial_operation(){
+    function testCannotAddInvalidTokenAddress() public{
         // Whitelist user1 but do not mint NFT
-        address[] memory addresses = new address[](2);
-        addresses[0] = user0;
-        addresses[1] = user1;
+        // address[] memory addresses = new address[](2);
+        // addresses[0] = user0;
+        // addresses[1] = user1;
         vm.startPrank(owner);
-        distributor.whitelistAddresses(addresses);
-
         // Attempt to add invalid token address
         vm.expectRevert("Invalid token address");
         distributor.changeTokenAddress(address(0));
@@ -126,5 +92,75 @@ contract TokenDistributorTest is Test {
         // Check balances
         assertEq(tokens[0].balanceOf(user0), 5 ether, "User0 balance is incorrect");
         assertEq(tokens[0].balanceOf(user1), 15 ether, "User1 balance is incorrect");
+    }
+
+    function testCannotDistributeWithNoRecipients() public {
+        address[] memory emptyAddresses = new address[](0);
+        vm.startPrank(owner);
+        vm.expectRevert("No recipients provided");
+        distributor.distributeTokensByUnit(emptyAddresses);
+        vm.stopPrank();
+    }
+
+    function testCannotDistributeWithNoTokenBalance() public {
+        // Create new distributor with no tokens
+        TokenDistributor newDistributor = new TokenDistributor(address(tokens[0]), owner, nft1155, 5 ether);
+        
+        address[] memory addresses = new address[](1);
+        addresses[0] = user0;
+        
+        vm.startPrank(owner);
+        newDistributor.whitelistAddresses(addresses);
+        nft1155.mint(user0, 2, 1, "");
+        
+        vm.expectRevert("No tokens available for distribution");
+        newDistributor.distributeTokensByUnit(addresses);
+        vm.stopPrank();
+    }
+
+    function testCannotDistributeWithNoEligibleRecipients() public {
+        address[] memory addresses = new address[](2);
+        addresses[0] = user0;
+        addresses[1] = user1;
+        
+        vm.startPrank(owner);
+        // Whitelist but don't mint NFTs
+        distributor.whitelistAddresses(addresses);
+        
+        vm.expectRevert("No eligible recipients");
+        distributor.distributeTokensByUnit(addresses);
+        vm.stopPrank();
+    }
+
+    function testCannotDistributeWhenNoTokensActuallySent() public {
+        address[] memory addresses = new address[](2);
+        addresses[0] = user0;
+        addresses[1] = user1;
+        
+        vm.startPrank(owner);
+        // Whitelist users
+        distributor.whitelistAddresses(addresses);
+        
+        // Mint NFTs but set base fee to 0
+        distributor.updateBaseFee(0);
+        nft1155.mint(user0, 2, 1, "");
+        nft1155.mint(user1, 2, 1, "");
+        
+        vm.expectRevert("No tokens were distributed");
+        distributor.distributeTokensByUnit(addresses);
+        vm.stopPrank();
+    }
+
+    function testCannotDistributeToNonWhitelisted() public {
+        address[] memory addresses = new address[](1);
+        addresses[0] = user0;
+        
+        vm.startPrank(owner);
+        // Mint NFT but don't whitelist
+        nft1155.mint(user0, 2, 1, "");
+        
+        vm.expectRevert("No eligible recipients");
+        distributor.distributeTokensByUnit(addresses);
+        vm.stopPrank();
     }
 }

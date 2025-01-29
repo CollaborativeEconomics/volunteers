@@ -41,27 +41,44 @@ contract TokenDistributor is Owned, IVolunteer {
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
         require(recipients.length > 0, "No recipients provided");
-
-        // Cache the length of registeredAddresses
-        uint256 recipientsLength = recipients.length;
-        uint256 baseFee = s_baseFee;
-
-        // Now distribute ERC20 tokens
-        // for (uint256 j = 0; j < tokens.length; j++) {
+        
+        // Check contract has token balance
         IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this));
+        require(tokenBalance > 0, "No tokens available for distribution");
 
-        if (tokenBalance > 0) {
-            for (uint256 i = 0; i < recipientsLength; i++) {
-                address currentAddress = recipients[i];
+        // Check at least one recipient is whitelisted and holds NFTs
+        bool hasEligibleRecipients = false;
+        for (uint256 i = 0; i < recipients.length; i++) {
+            if (whitelisted[recipients[i]] && 
+                i_nftContract.balanceOf(recipients[i], NFT_TOKEN_ID_TWO) > 0) {
+                hasEligibleRecipients = true;
+                break;
+            }
+        }
+        require(hasEligibleRecipients, "No eligible recipients");
+
+        // Cache values for gas optimization
+        uint256 recipientsLength = recipients.length;
+        uint256 baseFee = s_baseFee;
+        uint256 totalDistributed = 0;
+
+        // Distribute tokens
+        for (uint256 i = 0; i < recipientsLength; i++) {
+            address currentAddress = recipients[i];
+            if (whitelisted[currentAddress]) {
                 uint256 currentAddressNFTBalance = i_nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
                 if (currentAddressNFTBalance > 0) {
                     uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
                     tokenContract.transfer(currentAddress, currentAddressShare);
+                    totalDistributed += currentAddressShare;
                     emit TokensDistributed(currentAddress, currentAddressShare);
                 }
             }
         }
+
+        // Ensure at least some tokens were distributed
+        require(totalDistributed > 0, "No tokens were distributed");
     }
 
     /**
