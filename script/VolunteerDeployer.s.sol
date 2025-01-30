@@ -3,10 +3,13 @@
 pragma solidity >=0.8.0;
 
 import {Script} from "forge-std/Script.sol";
-import {Volunteer} from "../src/Volunteer.sol";
+import {TokenDistributor} from "../src/Volunteer.sol";
+import {ERC1155} from "openzeppelin-contracts/token/ERC1155/ERC1155.sol";
+import {console} from "forge-std/console.sol";
+
 
 contract VolunteerDeployer is Script {
-    function run() external returns (Volunteer) {
+    function run() external returns (TokenDistributor) {
         // Read environment variables
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address tokenAddress = vm.envAddress("TOKEN_ADDRESS");
@@ -18,7 +21,7 @@ contract VolunteerDeployer is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the Volunteer contract
-        Volunteer volunteer = new Volunteer(
+        TokenDistributor tokenDistributor = new TokenDistributor(
             tokenAddress,
             ownerAddress,
             ERC1155(nftContractAddress),
@@ -29,8 +32,8 @@ contract VolunteerDeployer is Script {
         vm.stopBroadcast();
 
         // Log the deployed address
-        console.log("Volunteer deployed at:", address(volunteer));
+        console.log("TokenDistributor deployed at:", address(tokenDistributor));
 
-        return volunteer;
+        return tokenDistributor;
     }
 }
