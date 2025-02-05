@@ -24,6 +24,7 @@ contract TokenDistributor is Owned, IVolunteer {
     uint256 public s_baseFee;
     /// @dev Token ID that qualifies volunteer for payment.
     uint8 private constant NFT_TOKEN_ID_TWO = 2;
+    string public name;
 
     /// @dev Event emitted when tokens are distributed
     event TokensDistributed(address indexed recipient, uint256 amount);
@@ -31,17 +32,22 @@ contract TokenDistributor is Owned, IVolunteer {
     /**
      * @dev Constructor to initialize the contract with tokens, NFT contract, and owner
      */
-    constructor(address _token, address _owner, ERC1155 _nftContract, uint256 _baseFee)
-        Owned(_owner)
-    {
+    constructor(
+        address _token,
+        address _owner,
+        ERC1155 _nftContract,
+        uint256 _baseFee,
+        string memory _name
+    ) Owned(_owner) {
         s_token = _token;
         i_nftContract = _nftContract; // @dev Set the NFT contract
         s_baseFee = _baseFee;
+        name = _name;
     }
 
     function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
         require(recipients.length > 0, "No recipients provided");
-        
+
         // Check contract has token balance
         IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this));
@@ -50,8 +56,7 @@ contract TokenDistributor is Owned, IVolunteer {
         // Check at least one recipient is whitelisted and holds NFTs
         bool hasEligibleRecipients = false;
         for (uint256 i = 0; i < recipients.length; i++) {
-            if (whitelisted[recipients[i]] && 
-                i_nftContract.balanceOf(recipients[i], NFT_TOKEN_ID_TWO) > 0) {
+            if (whitelisted[recipients[i]] && i_nftContract.balanceOf(recipients[i], NFT_TOKEN_ID_TWO) > 0) {
                 hasEligibleRecipients = true;
                 break;
             }
@@ -82,9 +87,9 @@ contract TokenDistributor is Owned, IVolunteer {
     }
 
     /**
-    * @dev Withdraws the remaining tokens from the contract after the campaign has ended
-    * This function is only callable by the owner
-    */
+     * @dev Withdraws the remaining tokens from the contract after the campaign has ended
+     * This function is only callable by the owner
+     */
     function withdrawToken() external onlyOwner {
         IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this)); // @dev Get the token balance of the contract
@@ -100,7 +105,7 @@ contract TokenDistributor is Owned, IVolunteer {
             // @dev Check if the address is not already whitelisted
             if (!whitelisted[_addresses[i]]) {
                 whitelisted[_addresses[i]] = true;
-                s_registeredAddresses.push(_addresses[i]); 
+                s_registeredAddresses.push(_addresses[i]);
             }
         }
     }
@@ -127,8 +132,8 @@ contract TokenDistributor is Owned, IVolunteer {
      * @param user The address to be added to the whitelist
      */
     function updateWhitelist(address user) external onlyOwner {
-        whitelisted[user] = true; 
-        s_registeredAddresses.push(user); 
+        whitelisted[user] = true;
+        s_registeredAddresses.push(user);
     }
 
     /**
@@ -144,7 +149,7 @@ contract TokenDistributor is Owned, IVolunteer {
      * @return _token The current donation token address
      */
     function getToken() external view returns (address _token) {
-        _token = s_token; 
+        _token = s_token;
         return _token;
     }
 

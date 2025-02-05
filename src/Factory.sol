@@ -8,10 +8,12 @@ import {ERC1155} from "openzeppelin-contracts/token/ERC1155/ERC1155.sol";
 
 /**
  * @title VolunteerFactory
- * @author Lawal Abubakar  
+ * @author Lawal Abubakar
  * @dev A contract for deploying TokenDistributor and VolunteerNFT contracts
  */
 contract VolunteerFactory {
+    string public constant NAME = "Volunteer Factory v1";
+
     /**
      * @dev Mapping of deployed token distributors by owner address
      */
@@ -28,14 +30,22 @@ contract VolunteerFactory {
      * @param _token The donation accepted token address
      * @param _nftContract The ERC721 contract used for NFT ownership checks
      * @param _baseFee The token baseFee
+     * @param _name The name of the deployed contract
      * @return The address of the newly deployed TokenDistributor
      */
-    function deployTokenDistributor(address _token, ERC1155 _nftContract, uint256 _baseFee)
-        external
-        returns (address)
-    {
-        TokenDistributor token_distributor =
-            new TokenDistributor(_token, msg.sender, _nftContract, _baseFee); // @dev Create a new TokenDistributor
+    function deployTokenDistributor(
+        address _token, 
+        ERC1155 _nftContract, 
+        uint256 _baseFee,
+        string memory _name
+    ) external returns (address) {
+        TokenDistributor token_distributor = new TokenDistributor(
+            _token, 
+            msg.sender, 
+            _nftContract, 
+            _baseFee,
+            _name
+        );
         deployedTokenDistributors[msg.sender] = address(token_distributor); // @dev Store the deployed contract address
         emit VolunteerDeployed(msg.sender, address(token_distributor)); // @dev Emit event for deployment
         return address(token_distributor); // @dev Return the address of the deployed contract
@@ -45,14 +55,16 @@ contract VolunteerFactory {
      * @dev Deploys a new VolunteerNFT contract
      * @param uri The URI of the NFT
      * @param owner The address of the owner of the VolunteerNFT
+     * @param _name The name of the deployed contract
      * @return The address of the newly deployed VolunteerNFT
      */
-    function deployVolunteerNFT(string memory uri, address owner) external returns (address) {
-        // @dev Create a new VolunteerNFT
-        VolunteerNFT volunteer_nft = new VolunteerNFT(uri, owner);
-        // @dev Store the deployed contract address
+    function deployVolunteerNFT(
+        string memory uri, 
+        address owner,
+        string memory _name
+    ) external returns (address) {
+        VolunteerNFT volunteer_nft = new VolunteerNFT(uri, owner, _name);
         deployedVolunteersNFT[msg.sender] = address(volunteer_nft);
-        // Emit event for deployment
         emit VolunteerDeployed(msg.sender, address(volunteer_nft));
         return address(volunteer_nft); // @dev Return the address of the deployed contract
     }

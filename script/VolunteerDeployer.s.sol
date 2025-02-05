@@ -7,7 +7,6 @@ import {TokenDistributor} from "../src/Volunteer.sol";
 import {ERC1155} from "openzeppelin-contracts/token/ERC1155/ERC1155.sol";
 import {console} from "forge-std/console.sol";
 
-
 contract VolunteerDeployer is Script {
     function run() external returns (TokenDistributor) {
         // Read environment variables
@@ -21,12 +20,14 @@ contract VolunteerDeployer is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the Volunteer contract
-        TokenDistributor tokenDistributor = new TokenDistributor(
-            tokenAddress,
-            ownerAddress,
-            ERC1155(nftContractAddress),
-            baseFee
-        );
+        TokenDistributor tokenDistributor =
+            new TokenDistributor(
+                tokenAddress, 
+                ownerAddress, 
+                ERC1155(nftContractAddress), 
+                baseFee,
+                "Token Distributor v1"
+            );
 
         // Stop broadcasting
         vm.stopBroadcast();

@@ -26,7 +26,12 @@ contract FactoryTest is Test {
         address[] memory tokensAddress = new address[](2);
         tokensAddress[0] = address(tokens[0]);
         tokensAddress[1] = address(tokens[1]);
-        volunteer = factory.deployTokenDistributor(tokensAddress[0], nft1155, 5 ** 18);
+        volunteer = factory.deployTokenDistributor(
+            tokensAddress[0], 
+            nft1155, 
+            5 ** 18,
+            "Test Token Distributor"
+        );
         iv = IVolunteer(volunteer);
     }
 
@@ -86,7 +91,5 @@ contract FactoryTest is Test {
         assertEq(arrLength, 3);
     }
 
-    function testDeploymentMappings() public {
-        
-    }
+    function testDeploymentMappings() public {}
 }

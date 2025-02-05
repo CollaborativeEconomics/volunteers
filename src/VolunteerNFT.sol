@@ -12,11 +12,18 @@ import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 contract VolunteerNFT is ERC1155, Owned {
     uint256 public constant POA = 0;
     uint256 public constant POE = 1;
+    string public name;
+
     /**
      * @dev Constructor to initialize the NFT with a URI and owner
      */
-
-    constructor(string memory uri, address owner) ERC1155(uri) Owned(owner) {}
+    constructor(
+        string memory uri,
+        address owner,
+        string memory _name
+    ) ERC1155(uri) Owned(owner) {
+        name = _name;
+    }
 
     /**
      * @dev Mints a new NFT to the specified address with a given token ID
