@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console, StdUtils} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {VolunteerFactory} from "../src/Factory.sol";
 import {MockERC721} from "./utils/mocks/MockERC721.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
@@ -10,83 +10,112 @@ import {IVolunteer} from "../src/interface/IVolunteer.sol";
 
 contract FactoryTest is Test {
     VolunteerFactory internal factory;
-    MockERC721 internal nft;
-    MockERC20[] internal tokens;
+    MockERC20 internal token;
     MockERC1155 internal nft1155;
     address internal volunteer;
-    IVolunteer public iv;
+    IVolunteer internal iv;
+    address internal owner;
+    uint256 internal constant BASE_FEE = 5 ether; // 5 tokens per NFT
+
+    event VolunteerDeployed(address indexed owner, address indexed volunteerAddress);
 
     function setUp() public {
+        owner = makeAddr("owner");
         factory = new VolunteerFactory();
-        nft = new MockERC721("Test NFT", "TNFT");
+        token = new MockERC20("Test Token", "TT", 18);
         nft1155 = new MockERC1155("Test NFT 1155", address(this));
-        tokens = new MockERC20[](2);
-        tokens[0] = new MockERC20("Test Token", "TT", 18);
-        tokens[1] = new MockERC20("Test Token 2", "TT2", 18);
-        address[] memory tokensAddress = new address[](2);
-        tokensAddress[0] = address(tokens[0]);
-        tokensAddress[1] = address(tokens[1]);
-        volunteer = factory.deployTokenDistributor(tokensAddress[0], nft1155, 5 ** 18);
+        
+        vm.prank(owner);
+        volunteer = factory.deployTokenDistributor(
+            address(token),
+            nft1155,
+            BASE_FEE
+        );
         iv = IVolunteer(volunteer);
     }
 
-    // function testVolunteerContractCallsSuccessfully() public view {
-    //     address[] memory token_address = iv.getTokens();
-    //     assertEq(token_address[0], address(tokens[0]));
-    // }
+    function test_DeploymentSuccess() public {
+        assertEq(iv.getToken(), address(token));
+        assertEq(iv.getNFTAddress(), address(nft1155));
+        assertEq(iv.getBaseFee(), BASE_FEE);
+    }
 
-    function testAddressWhiteListedSuccessfully() public {
-        address[] memory whitelist = new address[](6);
-        for (uint256 i = 0; i < 6; i++) {
-            // for (uint j = 1; j < 7; j++){
-            whitelist[i] = vm.addr(i + 1);
-            // }
+    function test_DeploymentWithZeroAddressFails() public {
+        vm.expectRevert("Invalid token address");
+        factory.deployTokenDistributor(
+            address(0),
+            nft1155,
+            BASE_FEE
+        );
+
+        vm.expectRevert("Invalid NFT contract");
+        factory.deployTokenDistributor(
+            address(token),
+            MockERC1155(address(0)),
+            BASE_FEE
+        );
+    }
+
+    function test_MultipleDeployments() public {
+        address[] memory deployments = new address[](3);
+        
+        for(uint256 i = 0; i < 3; i++) {
+            address newOwner = makeAddr(string(abi.encodePacked("owner", i)));
+            vm.prank(newOwner);
+            deployments[i] = factory.deployTokenDistributor(
+                address(token),
+                nft1155,
+                BASE_FEE
+            );
+            
+            assertEq(IVolunteer(deployments[i]).getToken(), address(token));
+            assertEq(IVolunteer(deployments[i]).getNFTAddress(), address(nft1155));
         }
 
-        iv.whitelistAddresses(whitelist);
-
-        address[] memory returnedArray = iv.getWhitelistedAddresses();
-        uint256 arrLength = returnedArray.length;
-        assertEq(arrLength, 6);
+        // Ensure all deployments are unique
+        assertFalse(deployments[0] == deployments[1]);
+        assertFalse(deployments[1] == deployments[2]);
+        assertFalse(deployments[0] == deployments[2]);
     }
 
-    function testRemoveFromWhitelist() public {
-        address[] memory whitelist = new address[](2);
-        address user1 = vm.addr(1);
-        address user2 = vm.addr(2);
-        whitelist[0] = user1;
-        whitelist[1] = user2;
-
-        iv.whitelistAddresses(whitelist);
-        address[] memory returnedArray = iv.getWhitelistedAddresses();
-        uint256 arrLength = returnedArray.length;
-        assertEq(arrLength, 2);
-
-        iv.removeFromWhitelist(user1);
-        bool isWhitelisted = iv.isWhitelisted(user1);
-        assertEq(isWhitelisted, false);
-    }
-
-    function testUpdateWhitelist() public {
-        address[] memory whitelist = new address[](2);
-        address user1 = vm.addr(1);
-        address user2 = vm.addr(2);
-        whitelist[0] = user1;
-        whitelist[1] = user2;
-
-        iv.whitelistAddresses(whitelist);
-        address[] memory returnedArray = iv.getWhitelistedAddresses();
-        uint256 arrLength = returnedArray.length;
-        assertEq(arrLength, 2);
-
-        address user3 = vm.addr(3);
-        iv.updateWhitelist(user3);
-        returnedArray = iv.getWhitelistedAddresses();
-        arrLength = returnedArray.length;
-        assertEq(arrLength, 3);
-    }
-
-    function testDeploymentMappings() public {
+    function test_DeploymentWithDifferentTokens() public {
+        MockERC20 newToken = new MockERC20("New Token", "NT", 18);
         
+        vm.prank(owner);
+        address newVolunteer = factory.deployTokenDistributor(
+            address(newToken),
+            nft1155,
+            BASE_FEE
+        );
+
+        assertEq(IVolunteer(newVolunteer).getToken(), address(newToken));
+        assertNotEq(IVolunteer(newVolunteer).getToken(), address(token));
+    }
+
+    function test_DeploymentWithDifferentBaseFees() public {
+        uint256 newBaseFee = 10 ether;
+        
+        vm.prank(owner);
+        address newVolunteer = factory.deployTokenDistributor(
+            address(token),
+            nft1155,
+            newBaseFee
+        );
+
+        assertEq(IVolunteer(newVolunteer).getBaseFee(), newBaseFee);
+        assertNotEq(IVolunteer(newVolunteer).getBaseFee(), BASE_FEE);
+    }
+
+    function testFuzz_DeploymentWithDifferentBaseFees(uint256 _baseFee) public {
+        vm.assume(_baseFee > 0 && _baseFee < type(uint256).max);
+        
+        vm.prank(owner);
+        address newVolunteer = factory.deployTokenDistributor(
+            address(token),
+            nft1155,
+            _baseFee
+        );
+
+        assertEq(IVolunteer(newVolunteer).getBaseFee(), _baseFee);
     }
 }
