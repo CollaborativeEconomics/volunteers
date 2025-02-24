@@ -122,6 +122,23 @@ contract TokenDistributorTest is Test {
         vm.stopPrank();
     }
 
+    function test_with_one_ineligible_recipient() public {
+        address[] memory addresses = new address[](3);
+        addresses[0] = user0;
+        addresses[1] = user1;
+        addresses[2] = user2;
+        vm.startPrank(owner);
+        nft1155.mint(user0, 2, 1, "");
+        nft1155.mint(user2, 2, 1, "");
+
+        distributor.distributeTokensByUnit(addresses);
+        vm.stopPrank();
+
+        assertEq(tokens[0].balanceOf(user0), 5 ether, "User0 balance is incorrect");
+        assertEq(tokens[0].balanceOf(user1), 0 ether, "User1 balance is incorrect");
+        assertEq(tokens[0].balanceOf(user2), 5 ether, "User2 balance is incorrect");
+    }
+
     function testCannotDistributeWhenNoTokensActuallySent() public {
         address[] memory addresses = new address[](2);
         addresses[0] = user0;

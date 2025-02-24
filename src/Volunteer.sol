@@ -37,32 +37,37 @@ contract TokenDistributor is Owned, IVolunteer {
         s_baseFee = _baseFee;
     }
 
-    function distributeTokensByUnit(address[] memory recipients) external onlyOwner {
-        require(recipients.length > 0, "No recipients provided");
+    function distributeTokensByUnit(address[] memory _recipients) external onlyOwner {
+        require(_recipients.length > 0, "No recipients provided");
 
-        // Check contract has token balance
         IERC20 tokenContract = IERC20(s_token);
         uint256 tokenBalance = tokenContract.balanceOf(address(this));
         require(tokenBalance > 0, "No tokens available for distribution");
 
-        // Check at least one recipient is whitelisted and holds NFTs
         bool hasEligibleRecipients = false;
-        for (uint256 i = 0; i < recipients.length; i++) {
-            if (i_nftContract.balanceOf(recipients[i], NFT_TOKEN_ID_TWO) > 0) {
+        uint256 totalRequiredTokens = 0;
+        uint256 recipientsLength = _recipients.length;
+        uint256 baseFee = s_baseFee;
+
+        // First, calculate total required tokens
+        for (uint256 i = 0; i < recipientsLength; i++) {
+            address currentAddress = _recipients[i];
+            uint256 currentAddressNFTBalance = i_nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
+            if (currentAddressNFTBalance > 0) {
+                uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
+                totalRequiredTokens += currentAddressShare;
                 hasEligibleRecipients = true;
-                break;
             }
         }
-        require(hasEligibleRecipients, "No eligible recipients");
 
-        // Cache values for gas optimization
-        uint256 recipientsLength = recipients.length;
-        uint256 baseFee = s_baseFee;
-        uint256 totalDistributed = 0;
+        // Ensure we have enough tokens and eligible recipients
+        require(hasEligibleRecipients, "No eligible recipients");
+        require(tokenBalance >= totalRequiredTokens, "Insufficient tokens to distribute");
 
         // Distribute tokens
+        uint256 totalDistributed = 0;
         for (uint256 i = 0; i < recipientsLength; i++) {
-            address currentAddress = recipients[i];
+            address currentAddress = _recipients[i];
             uint256 currentAddressNFTBalance = i_nftContract.balanceOf(currentAddress, NFT_TOKEN_ID_TWO);
             if (currentAddressNFTBalance > 0) {
                 uint256 currentAddressShare = currentAddressNFTBalance * baseFee;
@@ -72,8 +77,8 @@ contract TokenDistributor is Owned, IVolunteer {
             }
         }
 
-        // Ensure at least some tokens were distributed
         require(totalDistributed > 0, "No tokens were distributed");
+        require(totalDistributed == totalRequiredTokens, "Distribution mismatch");
     }
 
     /**
