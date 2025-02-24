@@ -14,8 +14,6 @@ import {IVolunteer} from "./interface/IVolunteer.sol";
 contract TokenDistributor is Owned, IVolunteer {
     /// @notice The list of acceptable tokens
     address public s_token;
-    /// @dev List of addresses registered for token distribution
-    address[] public s_registeredAddresses;
     /// @notice The NFT contract to check ownership
     ERC1155 private immutable i_nftContract;
     /// @dev Base fee per unit of activities defined by the organization
@@ -93,11 +91,11 @@ contract TokenDistributor is Owned, IVolunteer {
 
     /**
      * @dev Adds a new token address to the list of acceptable tokens
-     * @param tokenAddress The address of the token to be added
+     * @param _tokenAddress The address of the token to be added
      */
-    function changeTokenAddress(address tokenAddress) external onlyOwner {
-        require(tokenAddress != address(0), "Invalid token address"); // @dev Ensure the token address is valid
-        s_token = tokenAddress; // @dev Add the token address to the list
+    function changeTokenAddress(address _tokenAddress) external onlyOwner {
+        require(_tokenAddress != address(0), "Invalid token address"); // @dev Ensure the token address is valid
+        s_token = _tokenAddress; // @dev Add the token address to the list
     }
 
     /**
@@ -112,9 +110,8 @@ contract TokenDistributor is Owned, IVolunteer {
      * @dev Returns the current donation token address
      * @return _token The current donation token address
      */
-    function getToken() external view returns (address _token) {
-        _token = s_token;
-        return _token;
+    function getToken() external view returns (address) {
+        return s_token;
     }
 
     /**
