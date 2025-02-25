@@ -17,6 +17,7 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
     // Token IDs
     uint256 public constant PROOF_OF_ATTENDANCE = 1;
     uint256 public constant PROOF_OF_ENGAGEMENT = 2;
+    uint256 public constant MAX_HOLDERS = 10000;
 
     // Reward token configuration
     address public rewardToken;
@@ -32,6 +33,7 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
     event BaseFeeUpdated(uint256 newBaseFee);
     event HolderAdded(address indexed holder);
     event HolderRemoved(address indexed holder);
+    event MaxHoldersReached(address indexed attemptedHolder);
 
     constructor(
         string memory uri,
@@ -48,6 +50,7 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
         if (id != PROOF_OF_ENGAGEMENT) return;
 
         if (to != address(0) && balanceOf(to, id) > 0 && !isHolder[to]) {
+            require(holders.length < MAX_HOLDERS, "Max holders reached");
             isHolder[to] = true;
             holders.push(to);
             emit HolderAdded(to);
@@ -61,9 +64,10 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
     }
 
     function _removeHolder(address holder) internal {
-        for (uint256 i = 0; i < holders.length; i++) {
+        uint256 count = holders.length;
+        for (uint256 i = 0; i < count; i++) {
             if (holders[i] == holder) {
-                holders[i] = holders[holders.length - 1]; // Swap with last
+                holders[i] = holders[count - 1]; // Swap with last
                 holders.pop(); // Remove last element
                 break;
             }
@@ -84,6 +88,9 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
 
     function mint(address to, uint256 tokenId, uint256 amount) external onlyOwner {
         require(tokenId == PROOF_OF_ATTENDANCE || tokenId == PROOF_OF_ENGAGEMENT, "Invalid token ID");
+        if (tokenId == PROOF_OF_ENGAGEMENT && !isHolder[to]) {
+            require(holders.length < MAX_HOLDERS, "Max holders reached");
+        }
         _mint(to, tokenId, amount, "");
     }
 
@@ -91,40 +98,37 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
         _burn(from, tokenId, amount);
     }
 
-    function getEligibleHolders() public view returns (address[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < holders.length; i++) {
-            if (balanceOf(holders[i], PROOF_OF_ENGAGEMENT) > 0) {
-                count++;
-            }
-        }
-
-        address[] memory validHolders = new address[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < holders.length; i++) {
-            if (balanceOf(holders[i], PROOF_OF_ENGAGEMENT) > 0) {
-                validHolders[index] = holders[i];
-                index++;
-            }
-        }
-
-        return validHolders;
-    }
-
     function distributeTokens() external onlyOwner {
         IERC20 tokenContract = IERC20(rewardToken);
         uint256 contractBalance = tokenContract.balanceOf(address(this));
         require(contractBalance > 0, "No tokens available for distribution");
 
-        address[] memory eligibleHolders = getEligibleHolders();
-        require(eligibleHolders.length > 0, "No eligible recipients");
+        uint256 count = holders.length;
+        uint256 validCount = 0;
+        address[] memory eligibleHolders = new address[](count);
+        uint256[] memory holderBalances = new uint256[](count);
+        uint256 totalRequired = 0;
 
-        uint256 totalRequired = eligibleHolders.length * baseFee;
+        // Single pass to collect eligible holders and calculate totals
+        for (uint256 i = 0; i < count; i++) {
+            address holder = holders[i];
+            uint256 balance = balanceOf(holder, PROOF_OF_ENGAGEMENT);
+            if (balance > 0) {
+                eligibleHolders[validCount] = holder;
+                holderBalances[validCount] = balance;
+                totalRequired += balance * baseFee;
+                validCount++;
+            }
+        }
+
+        require(validCount > 0, "No eligible recipients");
         require(contractBalance >= totalRequired, "Insufficient funds");
 
-        for (uint256 i = 0; i < eligibleHolders.length; i++) {
-            tokenContract.safeTransfer(eligibleHolders[i], baseFee);
-            emit TokensDistributed(eligibleHolders[i], baseFee);
+        // Distribute rewards in a single pass
+        for (uint256 i = 0; i < validCount; i++) {
+            uint256 reward = holderBalances[i] * baseFee;
+            tokenContract.safeTransfer(eligibleHolders[i], reward);
+            emit TokensDistributed(eligibleHolders[i], reward);
         }
     }
 
@@ -147,6 +151,10 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
 
     function uri(uint256 id) public view virtual override returns (string memory) {
         return string(abi.encodePacked("ipfs://", Strings.toString(id)));
+    }
+
+    function getHolderCount() external view returns (uint256) {
+        return holders.length;
     }
 
     receive() external payable {}

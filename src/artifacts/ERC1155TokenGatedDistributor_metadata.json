@@ -214,6 +214,19 @@
 					{
 						"indexed": true,
 						"internalType": "address",
+						"name": "attemptedHolder",
+						"type": "address"
+					}
+				],
+				"name": "MaxHoldersReached",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
 						"name": "user",
 						"type": "address"
 					},
@@ -354,6 +367,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "MAX_HOLDERS",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "PROOF_OF_ATTENDANCE",
 				"outputs": [
 					{
@@ -471,12 +497,12 @@
 			},
 			{
 				"inputs": [],
-				"name": "getEligibleHolders",
+				"name": "getHolderCount",
 				"outputs": [
 					{
-						"internalType": "address[]",
+						"internalType": "uint256",
 						"name": "",
-						"type": "address[]"
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -1054,11 +1080,11 @@
 			]
 		},
 		"src/ERC1155TokenGatedDistributor.sol": {
-			"keccak256": "0x441c5edacb6a56236754af405fc7b27bd80e677fb680a5d96b31c68c9328efd4",
+			"keccak256": "0xa5bb86b3f7ff1a6c890e74af92929f0d89ebc778a7775b89b767472e02ac293d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://87b973d3e9bc986cdde37a65e51bef757fe4932bf8235cf4dbc59fc177fb3406",
-				"dweb:/ipfs/QmdNcc7RX4A3jAFJDRhnwZSX6Vtkudc2kEKs4i3LgmvVQG"
+				"bzz-raw://8ac90bcbccdb5256a20c477e3e55b4130ebbed7dbdd9a91517836cea82f18f38",
+				"dweb:/ipfs/QmSBRknGxiBkUq4gEqoo1g8Kkz6CbZ96HZzx6FYNuxdb6X"
 			]
 		}
 	},

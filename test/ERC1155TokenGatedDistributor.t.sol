@@ -54,9 +54,9 @@ contract ERC1155TokenGatedDistributorTest is Test {
     }
 
     function testDistributeTokens() public {
-        // Mint POE tokens
+        // Mint POE tokens with different amounts
         distributor.mint(user1, distributor.PROOF_OF_ENGAGEMENT(), 1);
-        distributor.mint(user2, distributor.PROOF_OF_ENGAGEMENT(), 1);
+        distributor.mint(user2, distributor.PROOF_OF_ENGAGEMENT(), 2);
 
         // Initial balances should be 0
         assertEq(rewardToken.balanceOf(user1), 0);
@@ -65,9 +65,9 @@ contract ERC1155TokenGatedDistributorTest is Test {
         // Distribute tokens
         distributor.distributeTokens();
 
-        // Check final balances - each holder should get BASE_FEE
-        assertEq(rewardToken.balanceOf(user1), BASE_FEE);
-        assertEq(rewardToken.balanceOf(user2), BASE_FEE);
+        // Check final balances - each holder should get BASE_FEE * their token count
+        assertEq(rewardToken.balanceOf(user1), BASE_FEE * 1);  // 1 POE * BASE_FEE
+        assertEq(rewardToken.balanceOf(user2), BASE_FEE * 2);  // 2 POE * BASE_FEE
     }
 
     function testFailDistributeWithInsufficientBalance() public {
@@ -160,6 +160,32 @@ contract ERC1155TokenGatedDistributorTest is Test {
         distributor.withdrawRewardTokens();
         assertEq(rewardToken.balanceOf(owner), initialBalance);
         assertEq(rewardToken.balanceOf(address(distributor)), 0);
+    }
+
+    function testMaxHolders() public {
+        // Mint to MAX_HOLDERS different addresses
+        for(uint256 i = 0; i < distributor.MAX_HOLDERS(); i++) {
+            address holder = address(uint160(i + 1));  // Create unique addresses
+            distributor.mint(holder, distributor.PROOF_OF_ENGAGEMENT(), 1);
+        }
+
+        // Try to mint to one more address
+        address oneMore = address(uint160(distributor.MAX_HOLDERS() + 1));
+        vm.expectRevert("Max holders reached");
+        distributor.mint(oneMore, distributor.PROOF_OF_ENGAGEMENT(), 1);
+    }
+
+    function testHolderCount() public {
+        assertEq(distributor.getHolderCount(), 0);
+
+        distributor.mint(user1, distributor.PROOF_OF_ENGAGEMENT(), 1);
+        assertEq(distributor.getHolderCount(), 1);
+
+        distributor.mint(user2, distributor.PROOF_OF_ENGAGEMENT(), 1);
+        assertEq(distributor.getHolderCount(), 2);
+
+        distributor.burn(user1, distributor.PROOF_OF_ENGAGEMENT(), 1);
+        assertEq(distributor.getHolderCount(), 1);
     }
 
     receive() external payable {}
