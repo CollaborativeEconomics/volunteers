@@ -69,14 +69,22 @@ contract TokenDistributorTest is Test {
 
     function testDistributeTokensWithNFT() public {
         // Whitelist users[0] and users[1]
-        address[] memory addresses = new address[](2);
+        address user4 = vm.addr(4);
+        address user5 = vm.addr(5);
+        address[] memory addresses = new address[](5);
         addresses[0] = user0;
         addresses[1] = user1;
+        addresses[2] = user2;
+        addresses[3] = user4;
+        addresses[4] = user5;
         vm.startPrank(owner);
 
         // Mint NFTs to the whitelisted users
         nft1155.mint(user0, 2, 1, "");
         nft1155.mint(user1, 2, 3, "");
+        nft1155.mint(user2, 2, 1, "");
+        nft1155.mint(user5, 2, 1, "");
+        nft1155.mint(user4, 2, 1, "");
 
         // Distribute tokens equally among whitelisted users
         distributor.distributeTokensByUnit(addresses);

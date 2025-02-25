@@ -12,7 +12,7 @@ fi
 # Deploy to Arbitrum Sepolia
 forge script script/FactoryDeployer.s.sol:FactoryDeployer \
     --rpc-url $RPC_URL \
-    --private-key $PRIVATE_KEY \
+    --sender $SENDER \
     --verify \
     --broadcast \
     --resume \
