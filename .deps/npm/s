@@ -1,0 +1,10 @@
+/**
+ * Skipped minification because the original files appears to be already minified.
+ * Original file: /npm/s@1.0.0/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+/*! s.js (C) 2019-present SheetJS -- https://sheetjs.com */
+/* vim: set ts=2: */
+
+module.exports = require('./dist/cjs/');

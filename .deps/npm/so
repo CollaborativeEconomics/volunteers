@@ -1,0 +1,8 @@
+/**
+ * Minified by jsDelivr using Terser v5.19.2.
+ * Original file: /npm/so@1.0.1/lib/so.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+"use strict";function so(r){return function(){var t=r.apply(this,arguments);try{return e()}catch(r){return Promise.reject(r)}function e(r){return o(t.next(r))}function n(r){return o(t.throw(r))}function o(r){var t=r.value;if(r.done)return Promise.resolve(t);if("function"==typeof t.then)return t.then(e,n);throw new Error("Expected Promise")}}}module.exports=so.default=so.so=so;
+//# sourceMappingURL=/sm/0956696ad5e768a7500dacfed38c7b331a6311e1d6a71bbef62bc62127f8a1c2.map

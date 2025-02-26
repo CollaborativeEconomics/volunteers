@@ -15,6 +15,5 @@ forge script script/FactoryDeployer.s.sol:FactoryDeployer \
     --private-key $PRIVATE_KEY \
     --verify \
     --broadcast \
-    --resume \
     --chain-id $CHAIN_ID \
     -vvvv 
