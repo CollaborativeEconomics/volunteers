@@ -14,6 +14,7 @@ contract ERC1155TokenGatedDistributorFactory is Owned {
     
     // Mapping to check if an address is a distributor created by this factory
     mapping(address => bool) public isDistributor;
+    mapping(address => address) public distributorByOwner;
     
     // Events
     event DistributorDeployed(
@@ -52,7 +53,7 @@ contract ERC1155TokenGatedDistributorFactory is Owned {
         address distributorAddress = address(distributor);
         deployedDistributors.push(distributorAddress);
         isDistributor[distributorAddress] = true;
-        
+        distributorByOwner[distributorOwner] = distributorAddress;
         emit DistributorDeployed(
             distributorAddress,
             distributorOwner,
@@ -78,6 +79,15 @@ contract ERC1155TokenGatedDistributorFactory is Owned {
      */
     function getAllDistributors() external view returns (address[] memory) {
         return deployedDistributors;
+    }
+    
+    /**
+     * @dev Get distributor address by owner address
+     * @param owner Address of the owner
+     * @return The distributor address
+     */
+    function getDistributorByOwner(address owner) external view returns (address) {
+        return distributorByOwner[owner];
     }
     
     /**

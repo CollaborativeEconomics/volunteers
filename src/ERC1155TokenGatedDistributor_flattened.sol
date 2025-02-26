@@ -4634,7 +4634,7 @@ pragma solidity >=0.8.0;
  * @title ERC1155TokenGatedDistributor
  * @dev ERC1155 token that gates reward distribution based on token ownership
  */
-contract ERC1155TokenGatedDistributor is ERC1155, Owned {
+contract ERC1155TokenGatedDistributorFlat is ERC1155, Owned {
     using SafeERC20 for IERC20;
 
     // Token IDs
