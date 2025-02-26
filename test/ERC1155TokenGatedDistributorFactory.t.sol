@@ -19,7 +19,7 @@ contract ERC1155TokenGatedDistributorFactoryTest is Test {
     
     function setUp() public {
         vm.startPrank(owner);
-        factory = new ERC1155TokenGatedDistributorFactory(owner);
+        factory = new ERC1155TokenGatedDistributorFactory();
         rewardToken = new MockERC20("Reward Token", "RWD", 18);
         vm.stopPrank();
     }

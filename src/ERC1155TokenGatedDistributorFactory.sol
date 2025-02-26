@@ -24,7 +24,7 @@ contract ERC1155TokenGatedDistributorFactory is Owned {
         string uri
     );
 
-    constructor(address _owner) Owned(_owner) {}
+    constructor() Owned(msg.sender) {}
 
     /**
      * @dev Deploy a new ERC1155TokenGatedDistributor contract
