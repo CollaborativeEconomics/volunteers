@@ -138,9 +138,17 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
         emit RewardTokenChanged(newToken);
     }
 
+    function getRewardToken() view external returns (address) {
+        return address(rewardToken);
+    }
+
     function setBaseFee(uint256 newBaseFee) external onlyOwner {
         baseFee = newBaseFee;
         emit BaseFeeUpdated(newBaseFee);
+    }
+
+    function getBaseFee() view external returns (uint256) {
+        return baseFee;
     }
 
     function withdrawRewardTokens() external onlyOwner {
