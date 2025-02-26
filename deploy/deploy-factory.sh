@@ -15,6 +15,5 @@ forge script script/FactoryDeployer.s.sol:FactoryDeployer \
     --sender $SENDER \
     --verify \
     --broadcast \
-    --resume \
     --chain-id $CHAIN_ID \
     -vvvv 
