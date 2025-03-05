@@ -273,4 +273,180 @@ contract ERC1155TokenGatedDistributorTest is Test {
         assertEq(distributor.balanceOf(user2, PROOF_OF_ENGAGEMENT), 0);
         assertEq(distributor.balanceOf(user3, PROOF_OF_ENGAGEMENT), 0);
     }
+
+    // ERC1155 Standard Tests
+    function test_SafeTransferFrom() public {
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        distributor.setApprovalForAll(user2, true);
+        vm.stopPrank();
+
+        vm.prank(user2);
+        distributor.safeTransferFrom(user1, user3, PROOF_OF_ENGAGEMENT, 3, "");
+
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 2);
+        assertEq(distributor.balanceOf(user3, PROOF_OF_ENGAGEMENT), 3);
+    }
+
+    function test_SafeBatchTransferFrom() public {
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = PROOF_OF_ENGAGEMENT;
+        ids[1] = PROOF_OF_ATTENDANCE;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 5;
+        amounts[1] = 3;
+
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        distributor.mint(user1, PROOF_OF_ATTENDANCE, 3);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        distributor.setApprovalForAll(user2, true);
+        vm.stopPrank();
+
+        vm.prank(user2);
+        distributor.safeBatchTransferFrom(user1, user3, ids, amounts, "");
+
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 0);
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ATTENDANCE), 0);
+        assertEq(distributor.balanceOf(user3, PROOF_OF_ENGAGEMENT), 5);
+        assertEq(distributor.balanceOf(user3, PROOF_OF_ATTENDANCE), 3);
+    }
+
+    function test_ApprovalForAll() public {
+        vm.prank(user1);
+        distributor.setApprovalForAll(user2, true);
+        assertTrue(distributor.isApprovedForAll(user1, user2));
+
+        vm.prank(user1);
+        distributor.setApprovalForAll(user2, false);
+        assertFalse(distributor.isApprovedForAll(user1, user2));
+    }
+
+    function test_BalanceOfBatch() public {
+        address[] memory accounts = new address[](3);
+        accounts[0] = user1;
+        accounts[1] = user2;
+        accounts[2] = user3;
+
+        uint256[] memory ids = new uint256[](3);
+        ids[0] = PROOF_OF_ENGAGEMENT;
+        ids[1] = PROOF_OF_ENGAGEMENT;
+        ids[2] = PROOF_OF_ATTENDANCE;
+
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        distributor.mint(user2, PROOF_OF_ENGAGEMENT, 3);
+        distributor.mint(user3, PROOF_OF_ATTENDANCE, 2);
+        vm.stopPrank();
+
+        uint256[] memory balances = distributor.balanceOfBatch(accounts, ids);
+        assertEq(balances[0], 5);
+        assertEq(balances[1], 3);
+        assertEq(balances[2], 2);
+    }
+
+    // URI Tests
+    function test_TokenURI() public {
+        string memory engagementURI = distributor.uri(PROOF_OF_ENGAGEMENT);
+        string memory attendanceURI = distributor.uri(PROOF_OF_ATTENDANCE);
+        
+        assertEq(engagementURI, string(abi.encodePacked("ipfs://", vm.toString(PROOF_OF_ENGAGEMENT))));
+        assertEq(attendanceURI, string(abi.encodePacked("ipfs://", vm.toString(PROOF_OF_ATTENDANCE))));
+    }
+
+    // MAX_HOLDERS Tests
+    function test_RevertMaxHoldersReached() public {
+        // Create many holders up to MAX_HOLDERS - 1
+        for(uint256 i = 0; i < 9999; i++) {
+            address holder = address(uint160(i + 1000)); // Start from non-zero address
+            vm.prank(owner);
+            distributor.mint(holder, PROOF_OF_ENGAGEMENT, 1);
+        }
+
+        // This should succeed as it's the last allowed holder
+        vm.prank(owner);
+        distributor.mint(address(uint160(10999)), PROOF_OF_ENGAGEMENT, 1);
+
+        // This should fail as we've reached MAX_HOLDERS
+        vm.expectRevert("Max holders reached");
+        vm.prank(owner);
+        distributor.mint(address(uint160(11000)), PROOF_OF_ENGAGEMENT, 1);
+    }
+
+    // withdrawRewardTokens Tests
+    function test_WithdrawRewardTokens() public {
+        uint256 amount = 1000 ether;
+        vm.startPrank(owner);
+        rewardToken.mint(address(distributor), amount);
+        distributor.withdrawRewardTokens();
+        vm.stopPrank();
+
+        assertEq(rewardToken.balanceOf(owner), amount);
+        assertEq(rewardToken.balanceOf(address(distributor)), 0);
+    }
+
+    function test_RevertUnauthorizedWithdraw() public {
+        vm.prank(owner);
+        rewardToken.mint(address(distributor), 1000 ether);
+
+        vm.expectRevert("UNAUTHORIZED");
+        vm.prank(user1);
+        distributor.withdrawRewardTokens();
+    }
+
+    // Edge Cases
+    function test_ZeroAmountOperations() public {
+        // Zero amount mint
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 0);
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 0);
+        assertEq(distributor.getHolderCount(), 0);
+
+        // Zero amount burn
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        distributor.burn(user1, PROOF_OF_ENGAGEMENT, 0);
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 5);
+        vm.stopPrank();
+    }
+
+    function test_TransferBetweenHolders() public {
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        distributor.safeTransferFrom(user1, user2, PROOF_OF_ENGAGEMENT, 3, "");
+
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 2);
+        assertEq(distributor.balanceOf(user2, PROOF_OF_ENGAGEMENT), 3);
+        assertEq(distributor.getHolderCount(), 2);
+    }
+
+    function test_MixedTokenTransfers() public {
+        vm.startPrank(owner);
+        distributor.mint(user1, PROOF_OF_ENGAGEMENT, 5);
+        distributor.mint(user1, PROOF_OF_ATTENDANCE, 3);
+        vm.stopPrank();
+
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = PROOF_OF_ENGAGEMENT;
+        ids[1] = PROOF_OF_ATTENDANCE;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 2;
+        amounts[1] = 1;
+
+        vm.prank(user1);
+        distributor.safeBatchTransferFrom(user1, user2, ids, amounts, "");
+
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ENGAGEMENT), 3);
+        assertEq(distributor.balanceOf(user1, PROOF_OF_ATTENDANCE), 2);
+        assertEq(distributor.balanceOf(user2, PROOF_OF_ENGAGEMENT), 2);
+        assertEq(distributor.balanceOf(user2, PROOF_OF_ATTENDANCE), 1);
+        assertEq(distributor.getHolderCount(), 2);
+    }
 } 
