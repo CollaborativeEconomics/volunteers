@@ -128,6 +128,7 @@ contract ERC1155TokenGatedDistributor is ERC1155, Owned {
         for (uint256 i = 0; i < validCount; i++) {
             uint256 reward = holderBalances[i] * baseFee;
             tokenContract.safeTransfer(eligibleHolders[i], reward);
+            _burn(eligibleHolders[i], PROOF_OF_ENGAGEMENT, holderBalances[i]);
             emit TokensDistributed(eligibleHolders[i], reward);
         }
     }
