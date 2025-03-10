@@ -1,34 +1,287 @@
-
-╭-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------╮
-| Type        | Signature                                                                      | Selector                                                           |
-+===================================================================================================================================================================+
-| event       | DistributorDeployed(address,address,address,uint256,string)                    | 0xb1d52eac476b9249f7ad3429a4fe3aa4255c6d7a469862d04722d997b862b72e |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OwnershipTransferred(address,address)                                          | 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0 |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | deployDistributor(string,address,address,uint256) nonpayable returns (address) | 0xdb5e4ba0                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | deployedDistributors(uint256) view returns (address)                           | 0xf732e795                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | distributorByOwner(address) view returns (address)                             | 0xf9476b58                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getAllDistributors() view returns (address[])                                  | 0x8e24c34b                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getDistributorByOwner(address) view returns (address)                          | 0xf3ef5842                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getDistributorCount() view returns (uint256)                                   | 0xf6edf18c                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getDistributorsByOwner(address) view returns (address[])                       | 0x48b929a1                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getDistributorsPaginated(uint256,uint256) view returns (address[])             | 0xbbbe17d5                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | isDistributor(address) view returns (bool)                                     | 0x8f0c86fa                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | owner() view returns (address)                                                 | 0x8da5cb5b                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | transferOwnership(address) nonpayable                                          | 0xf2fde38b                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | verifyDistributor(address) view returns (bool)                                 | 0x3c6430cb                                                         |
-|-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------|
-| constructor | constructor() nonpayable                                                       |                                                                    |
-╰-------------+--------------------------------------------------------------------------------+--------------------------------------------------------------------╯
+[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "distributorAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "rewardToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "baseFee",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "uri",
+				"type": "string"
+			}
+		],
+		"name": "DistributorDeployed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "uri",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "distributorOwner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "rewardToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "baseFee",
+				"type": "uint256"
+			}
+		],
+		"name": "deployDistributor",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "deployedDistributors",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "distributorByOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllDistributors",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "getDistributorByOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getDistributorCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "getDistributorsByOwner",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "startIndex",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "count",
+				"type": "uint256"
+			}
+		],
+		"name": "getDistributorsPaginated",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "isDistributor",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "distributorAddress",
+				"type": "address"
+			}
+		],
+		"name": "verifyDistributor",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
